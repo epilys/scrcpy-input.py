@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""This tool copies your input to system clipboard and then synchronises it
+ABOUT = """This tool copies your input to system clipboard and then synchronises it
 with android's clipboard and pastes it with Alt-v command. Obviously this will
 overwrite your clipboard contents. Make sure you focus on the text input on the
 scrcpy window before you attempt to paste. - epilys 2021-06-21
@@ -29,10 +29,14 @@ import signal
 import time
 import textwrap
 import os
+import webbrowser
 from typing import Union, List, Tuple
 
 # dependencies:
 # apt install xdotool xclip
+
+APP_NAME = "scrcpy-input"
+APP_REPO = "https://gist.github.com/epilys/89148373fd2fb0d1d50c941eda3ec6db"
 
 """
 usage: scrcpy-input.py [-h] [-m] [-nh] [-ns] window_name
@@ -131,7 +135,7 @@ class Application(Frame):
         Grid.columnconfigure(self.master, 2, weight=0)
         # menu
         self.menubar = Menu(self.master)
-        self.menubar.add_command(label="scrcpy-input")
+        self.menubar.add_command(label=APP_NAME, command=self.show_about)
         self.menubar.add_command(label="quit", command=self.quit_ask)
         self.master.config(menu=self.menubar)
 
@@ -284,6 +288,15 @@ class Application(Frame):
             return
         self.master.quit()
 
+    def show_about(self):
+        win = Toplevel(self.master, padx=40, pady=20)
+        win.title(APP_NAME)
+        Label(win, text=ABOUT, wraplength=600, justify=LEFT).pack()
+        for link in [APP_REPO, "https://github.com/Genymobile/scrcpy"]:
+            lbl = Label(win, text=link, fg="blue", cursor="hand2")
+            lbl.bind("<Button-1>", lambda e: webbrowser.open_new(e.widget.cget("text")))
+            lbl.pack()
+
     def set_window_name(self):
         window_name = tkinter.simpledialog.askstring("new window name", "")
         if window_name is not None:
@@ -388,7 +401,7 @@ if __name__ == "__main__":
     os.environ["GTK_IM_MODULE"] = "gtk-im-context-simple"
     os.environ["QT_IM_MODULE"] = "simple"
 
-    root = Tk(className="scrcpy-input")
+    root = Tk(className=APP_NAME)
     Grid.rowconfigure(root, 0, weight=1)  # type: ignore
     Grid.columnconfigure(root, 0, weight=1)  # type: ignore
 
