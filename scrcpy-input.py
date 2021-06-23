@@ -144,10 +144,29 @@ class Application(Frame):
 
         # textarea
         Label(self.master, text="enter text", padx=10, pady=10).grid(column=0, row=1)
-        self.entry = Text(self.master, exportselection=False)
+        self.entry = Text(
+            self.master, exportselection=False, undo=True, maxundo=-1, wrap="word"
+        )
         self.entry.grid(column=1, row=1, sticky=W + E + N + S)
         self.entry.bind("<Control-KeyRelease-Return>", self.auto_send)
-        self.entry.bind("<Control-KeyRelease-a>", self.select_all_callback)
+        self.entry.bind("<Control-Key-a>", self.select_all)
+        self.entry.bind(
+            "<Control-Key-z>", lambda s: self.entry.event_generate("<<Undo>>")
+        )
+        self.entry.bind(
+            "<Control-Key-y>", lambda s: self.entry.event_generate("<<Redo>>")
+        )
+        self.entry.bind(
+            "<Control-Key-e>", lambda s: self.entry.event_generate("<<LineEnd>>")
+        )
+        self.entry.bind("<Control-Key-w>", self.delete_word)
+        self.entry.bind("<Control-BackSpace>", self.delete_word)
+        self.entry.bind(
+            "<Control-Key-f>", lambda s: self.entry.event_generate("<<NextChar>>")
+        )
+        self.entry.bind(
+            "<Control-Key-b>", lambda s: self.entry.event_generate("<<PrevChar>>")
+        )
         button_frame = Frame(self.master)
         Grid.rowconfigure(button_frame, 0, weight=1)
         Grid.rowconfigure(button_frame, 1, weight=0)
@@ -306,8 +325,16 @@ class Application(Frame):
             ]
         )
 
-    def select_all_callback(self, event):
-        self.entry.event_generate("<<SelectAll>>")
+    def select_all(self, event):
+        if self.entry.index(INSERT) == "1.0":
+            self.entry.event_generate("<<SelectAll>>")
+        else:
+            self.entry.mark_set(INSERT, "1.0")
+        return "break"
+
+    def delete_word(self, event):
+        self.entry.event_generate("<<SelectPrevWord>>")
+        self.entry.event_generate("<<Delete>>")
 
 
 if __name__ == "__main__":
