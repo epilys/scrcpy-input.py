@@ -19,6 +19,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 import argparse
 import tkinter.simpledialog
 from tkinter import *
+from tkinter.ttk import Sizegrip
 from tkinter import messagebox
 from threading import Thread
 from subprocess import Popen, PIPE
@@ -106,7 +107,7 @@ class Application(Frame):
         auto_send: bool,
         auto_hide: bool,
         auto_strip: bool,
-        master=None,
+        master,
     ):
         super().__init__(master)
         self.window_name = StringVar()
@@ -117,6 +118,8 @@ class Application(Frame):
         self.auto_strip_initial = auto_strip
         self.history: List[Tuple[datetime.datetime, str]] = []
         self.create_widgets()
+        master.update()
+        master.minsize(master.winfo_width(), master.winfo_height())
         master.bind("<Control-KeyRelease-q>", self.quit_ask)
 
     def create_widgets(self):
@@ -145,7 +148,13 @@ class Application(Frame):
         # textarea
         Label(self.master, text="enter text", padx=10, pady=10).grid(column=0, row=1)
         self.entry = Text(
-            self.master, exportselection=False, undo=True, maxundo=-1, wrap="word"
+            self.master,
+            exportselection=False,
+            undo=True,
+            maxundo=-1,
+            wrap="word",
+            height=3,
+            width=20,
         )
         self.entry.grid(column=1, row=1, sticky=W + E + N + S)
         self.entry.bind("<Control-KeyRelease-Return>", self.auto_send)
@@ -234,12 +243,19 @@ class Application(Frame):
         button.grid(column=2, row=2, sticky=NSEW)
 
         # status bar
+        status_frame = Frame(self.master)
+        status_frame.grid(column=0, row=3, columnspan=3, sticky=W + E + N + S)
+        Grid.rowconfigure(status_frame, 0, weight=1)  # type: ignore
+        Grid.columnconfigure(status_frame, 0, weight=1)  # type: ignore
+        Grid.columnconfigure(status_frame, 1, weight=0)  # type: ignore
         self.status = StringVar()
         self.status.set("")
         self.status_bar = Label(
-            self.master, textvariable=self.status, bd=1, relief=SUNKEN, anchor=W
+            status_frame, textvariable=self.status, bd=1, relief=SUNKEN, anchor=W
         )
-        self.status_bar.grid(column=0, row=3, columnspan=2, sticky=W + E + N + S)
+        self.status_bar.grid(row=0, column=0, columnspan=1, sticky=W + E + N + S)
+        sg = Sizegrip(status_frame)
+        sg.grid(row=0, column=1, sticky=S + E)
 
     def update_send_button(self):
         self.entry._button["text"] = (
@@ -381,7 +397,7 @@ if __name__ == "__main__":
         not args.manual,
         not args.no_hide,
         not args.no_strip,
-        master=root,
+        root,
     )
 
     def sigint_handler(sig, frame):
