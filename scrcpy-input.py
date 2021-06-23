@@ -122,6 +122,7 @@ class Application(Frame):
         self.auto_strip_initial = auto_strip
         self.history: List[Tuple[datetime.datetime, str]] = []
         self.create_widgets()
+        self.entry.focus_set()
         master.update()
         master.minsize(master.winfo_width(), master.winfo_height())
         master.bind("<Control-KeyRelease-q>", self.quit_ask)
